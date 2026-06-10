@@ -31,17 +31,20 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/234-deploylab-frontend:latest
 
-      - name: Copy file via ssh password
+      - name: Save Docker image
+        run: docker save ${{ secrets.DOCKER_HUB_USERNAME }}/234-deploylab-frontend:latest -o frontend-image.tar
+
+      - name: Copy image to server
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.HOST_SERVER }}
           username: root
           key: ${{ secrets.HOST_SSH_PRIVATE_KEY }}
           port: 2222
-          source: "docker-compose.yml"
+          source: "frontend-image.tar"
           target: "/root/frontend"
 
-      - name: Docker compose
+      - name: Run frontend container
         uses: appleboy/ssh-action@v1.2.4
         with:
           host: ${{ secrets.HOST_SERVER }}
@@ -49,9 +52,7 @@ jobs:
           key: ${{ secrets.HOST_SSH_PRIVATE_KEY }}
           port: 2222
           script: |
-            cd /root/frontend
-            echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-            docker compose down
-            docker compose pull
-            docker compose up -d
+            docker load -i /root/frontend/frontend-image.tar
+            docker rm -f lab11-frontend || true
+            docker run -d --name lab11-frontend --restart unless-stopped --network host ${{ secrets.DOCKER_HUB_USERNAME }}/234-deploylab-frontend:latest
             rm -rf /root/frontend
