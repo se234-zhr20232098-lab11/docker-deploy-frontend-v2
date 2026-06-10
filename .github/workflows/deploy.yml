@@ -57,5 +57,7 @@ jobs:
             docker run -d --name lab11-frontend --restart unless-stopped --network host \
               -e VITE_GRAPHQL_URI=http://${{ secrets.HOST_SERVER }}:8080/graphql \
               -e VITE_SERVER_URI=http://${{ secrets.HOST_SERVER }}:8080 \
+              -e NGINX_PORT=8080 \
+              -e BACKEND_PORT=8082 \
               ${{ secrets.DOCKER_HUB_USERNAME }}/234-deploylab-frontend:latest
             rm -rf /root/frontend
