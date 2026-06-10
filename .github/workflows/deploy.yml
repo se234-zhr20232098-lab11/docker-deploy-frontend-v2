@@ -54,5 +54,8 @@ jobs:
           script: |
             docker load -i /root/frontend/frontend-image.tar
             docker rm -f lab11-frontend || true
-            docker run -d --name lab11-frontend --restart unless-stopped --network host ${{ secrets.DOCKER_HUB_USERNAME }}/234-deploylab-frontend:latest
+            docker run -d --name lab11-frontend --restart unless-stopped --network host \
+              -e VITE_GRAPHQL_URI=http://${{ secrets.HOST_SERVER }}:8080/graphql \
+              -e VITE_SERVER_URI=http://${{ secrets.HOST_SERVER }}:8080 \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/234-deploylab-frontend:latest
             rm -rf /root/frontend
